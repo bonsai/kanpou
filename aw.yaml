@@ -1,0 +1,57 @@
+version: 1
+intent: kanpou-api-agent-poc
+repository: bonsai/kanpou
+
+objective: >-
+  Build a minimal Agent-callable PoC that fetches official Kanpou data,
+  normalizes it into stable JSON, and exposes a thin API wrapper.
+
+strategy:
+  - inspect_existing: true
+  - prefer_existing_implementations: true
+  - official_source_first: true
+  - minimal_poc: true
+  - avoid_ui_automation: true
+
+workflow:
+  - id: research
+    action: inspect
+    targets:
+      - existing Kanpou API clients
+      - existing Kanpou MCP implementations
+      - official Kanpou publication source
+  - id: schema
+    action: define
+    output: schema/gazette.json
+  - id: fetch
+    action: implement
+    output: official-source-adapter
+  - id: normalize
+    action: implement
+    output: normalized-gazette-json
+  - id: agent
+    action: expose
+    output: agent-callable-interface
+  - id: example
+    action: verify
+    output: examples/sample.json
+
+poc:
+  input:
+    date: YYYY-MM-DD
+  output:
+    type: gazette
+    format: json
+    stable_schema: schema/gazette.json
+
+acceptance:
+  - official source is documented
+  - one dated gazette can be fetched or represented
+  - normalized JSON validates against schema/gazette.json
+  - agent can invoke the PoC without knowing source-specific details
+  - implementation remains small enough to replace or extend the source adapter
+
+next:
+  - add RESAS/e-Stat style provider abstraction if useful
+  - add search over normalized records
+  - integrate with AW provider registry

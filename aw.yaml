@@ -1,57 +1,41 @@
 version: 1
-intent: kanpou-api-agent-poc
+intent: kanpou-pdf-ds-pipeline
 repository: bonsai/kanpou
 
 objective: >-
-  Build a minimal Agent-callable PoC that fetches official Kanpou data,
-  normalizes it into stable JSON, and exposes a thin API wrapper.
+  Convert Kanpou PDFs from bonsai/kanpo.json into Markdown and JSON
+  through small, replaceable Python transformation steps for DS use.
 
 strategy:
-  - inspect_existing: true
   - prefer_existing_implementations: true
   - official_source_first: true
   - minimal_poc: true
-  - avoid_ui_automation: true
+  - keep_transformers_separate: true
 
 workflow:
-  - id: research
-    action: inspect
-    targets:
-      - existing Kanpou API clients
-      - existing Kanpou MCP implementations
-      - official Kanpou publication source
-  - id: schema
-    action: define
-    output: schema/gazette.json
-  - id: fetch
-    action: implement
-    output: official-source-adapter
-  - id: normalize
-    action: implement
-    output: normalized-gazette-json
-  - id: agent
-    action: expose
-    output: agent-callable-interface
-  - id: example
-    action: verify
-    output: examples/sample.json
+  - id: pdf2md
+    action: transform
+    input: PDF
+    tool: Python
+    output: Markdown
+  - id: md2json
+    action: transform
+    input: Markdown
+    tool: Python
+    output: normalized-JSON
 
 poc:
   input:
-    date: YYYY-MM-DD
+    provider: bonsai/kanpo.json
+    format: pdf
   output:
-    type: gazette
-    format: json
-    stable_schema: schema/gazette.json
+    formats:
+      - md
+      - json
+    downstream: DS
 
 acceptance:
-  - official source is documented
-  - one dated gazette can be fetched or represented
-  - normalized JSON validates against schema/gazette.json
-  - agent can invoke the PoC without knowing source-specific details
-  - implementation remains small enough to replace or extend the source adapter
-
-next:
-  - add RESAS/e-Stat style provider abstraction if useful
-  - add search over normalized records
-  - integrate with AW provider registry
+  - PDF can be converted to Markdown by Python
+  - Markdown can be converted to JSON by Python
+  - source/provenance is retained in JSON
+  - transformations remain independently replaceable
